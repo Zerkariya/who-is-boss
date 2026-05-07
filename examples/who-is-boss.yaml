@@ -1,0 +1,35 @@
+# who-is-boss configuration
+# Map each role to one CLI agent. Only the boss is allowed to write code;
+# other roles exist to keep the boss's context window clean.
+#
+# Each agent spec supports:
+#   command:     executable to run (required)
+#   args:        extra args prepended before the prompt (optional)
+#   promptMode:  "argv" (default) or "stdin"
+#   env:         extra env vars
+#   timeoutSec:  hard timeout, default 300
+#
+# The boss role is informational — you typically run the boss CLI yourself
+# and let it shell out to `wib ask <role> "..."` for everything else.
+
+roles:
+  boss:
+    name: claude
+    command: claude
+
+  reviewer:
+    name: codex
+    command: codex
+    # If your CLI prefers stdin instead of argv:
+    # promptMode: stdin
+
+  researcher:
+    name: deepseek
+    command: deepseek
+    # Example: route through a generic chat CLI
+    # command: llm
+    # args: ["-m", "deepseek-chat"]
+
+  consultant:
+    name: gemini
+    command: gemini
