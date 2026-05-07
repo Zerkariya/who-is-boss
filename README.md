@@ -150,6 +150,39 @@ Each role under `roles:` accepts:
 
 Roles you don't configure are simply unavailable; calling them returns a clear error.
 
+## Using the same CLI for multiple roles
+
+Yes, you can point all four roles at `claude` (or `codex`, etc.). They won't share memory — `who-is-boss` arranges that for you.
+
+The trick: most agentic CLIs key their session state by **current working directory** (Claude Code stores sessions under `~/.claude/projects/<encoded-cwd>/...`; codex behaves similarly). `who-is-boss` runs each role in a different cwd, so the CLI naturally treats them as separate "projects" with separate conversation memories:
+
+| Role         | cwd at runtime                                           | Session lifetime                |
+|--------------|----------------------------------------------------------|----------------------------------|
+| `boss`       | the project root                                         | persistent (the boss's main session) |
+| `reviewer`   | a fresh ephemeral git worktree, **new on every call**    | none — fresh thread every time   |
+| `researcher` | a fresh ephemeral git worktree, **new on every call**    | none — fresh thread every time   |
+| `consultant` | `<project>/.wib/sessions/consultant/`                    | persistent, but separate from boss |
+
+Reviewer and researcher are short-lived by design (they're meant to read, report, and exit). Consultant keeps a persistent session — it's *your* personal helper across questions — but cleanly isolated from the boss.
+
+If your CLI doesn't key session state by cwd, you can layer on explicit isolation per role via env vars or args. Every role automatically receives:
+
+- `WIB_ROLE` — the role name, useful in wrapper scripts
+- `WIB_PROJECT_ROOT` — the boss's repo path
+- `WIB_CONFIG_PATH` — where `.who-is-boss.yaml` lives
+- `WIB_WORKTREE` — present only for reviewer/researcher
+
+Example wrapper using `WIB_ROLE` to namespace sessions:
+
+```yaml
+reviewer:
+  command: bash
+  args: ["-c", 'some-cli --session-id "wib-$WIB_ROLE" --prompt "$(cat)"']
+  promptMode: stdin
+```
+
+See `examples/all-claude.yaml` for a config that uses one agent for everything, and `examples/mixed.yaml` for a multi-vendor setup.
+
 ## Isolation: how reviewer/researcher are kept read-only
 
 When you call `wib ask reviewer …` or `wib ask researcher …`, `who-is-boss`:

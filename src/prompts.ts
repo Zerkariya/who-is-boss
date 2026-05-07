@@ -54,6 +54,7 @@ export function wrapPrompt(
         [
           `You are the consultant. The user is asking you a question directly — the boss is busy writing code and must not be interrupted.`,
           `Answer the user's question clearly and concisely. You are NOT writing code into this project; you are explaining, comparing, or recommending.`,
+          `Your current working directory is a dedicated session dir, separate from the boss's repo, so your conversation memory is isolated. The actual project lives at the path in the env var \`WIB_PROJECT_ROOT\` — read from it if needed, but do not modify it.`,
           ctx
             ? `Below is recent activity from boss / reviewer / researcher in this project, for your context. Use it only if relevant to the user's question.`
             : `(No recent boss/reviewer/researcher activity has been recorded yet for this project.)`,

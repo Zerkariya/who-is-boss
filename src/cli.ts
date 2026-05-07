@@ -1,10 +1,10 @@
 #!/usr/bin/env node
-import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { runAgent } from './agent.js';
 import { loadConfig, type AgentSpec } from './config.js';
-import { ROLES, ROLE_DESCRIPTIONS, isRole } from './roles.js';
+import { ROLES, ROLE_DESCRIPTIONS, isRole, type Role } from './roles.js';
 import { createWorktree, isGitRepo } from './worktree.js';
 import { appendTranscript, recentTranscriptText } from './transcript.js';
 import { wrapPrompt } from './prompts.js';
@@ -65,6 +65,25 @@ function parseArgs(argv: string[]): ParsedArgs {
   return { command, positional, flags };
 }
 
+function sessionDir(projectRoot: string, role: Role): string {
+  const dir = join(projectRoot, '.wib', 'sessions', role);
+  mkdirSync(dir, { recursive: true });
+  const readme = join(dir, 'README.md');
+  if (!existsSync(readme)) {
+    writeFileSync(
+      readme,
+      `# .wib/sessions/${role}\n\n` +
+        `who-is-boss runs the **${role}** role with this directory as cwd, so a\n` +
+        `CLI that keys session state by working directory (claude, codex, etc.)\n` +
+        `treats it as a separate "project" from the boss. This isolates the\n` +
+        `${role}'s memory even when the same agent fills multiple roles.\n\n` +
+        `If \`${role}\` needs to read the actual project files, the env var\n` +
+        `\`WIB_PROJECT_ROOT\` points to the boss's repo.\n`,
+    );
+  }
+  return dir;
+}
+
 async function readStdin(): Promise<string> {
   if (process.stdin.isTTY) return '';
   const chunks: Buffer[] = [];
@@ -111,10 +130,20 @@ async function cmdAsk(args: ParsedArgs): Promise<number> {
   const stream = Boolean(args.flags.stream);
   const isolate = !args.flags['no-isolate'];
 
+  // Common env injected for every role so the same CLI used in multiple roles
+  // can branch on WIB_ROLE if it wants, and so nested wib calls find the
+  // original project even from inside a worktree.
+  const baseEnv: Record<string, string> = {
+    WIB_PROJECT_ROOT: projectRoot,
+    WIB_CONFIG_PATH: config.sourcePath,
+    WIB_ROLE: role,
+  };
+
   let runSpec: AgentSpec = spec;
   let wrappedPrompt = userPrompt;
   let cleanup: (() => void) | undefined;
   let worktreePath: string | undefined;
+  let runCwd: string;
 
   try {
     if ((role === 'reviewer' || role === 'researcher') && isolate) {
@@ -128,27 +157,34 @@ async function cmdAsk(args: ParsedArgs): Promise<number> {
       const wt = createWorktree(projectRoot);
       worktreePath = wt.path;
       cleanup = wt.cleanup;
-      runSpec = {
-        ...spec,
-        cwd: wt.path,
-        env: {
-          ...(spec.env ?? {}),
-          WIB_PROJECT_ROOT: projectRoot,
-          WIB_CONFIG_PATH: config.sourcePath,
-          WIB_WORKTREE: wt.path,
-          WIB_ROLE: role,
-        },
-      };
+      runCwd = wt.path;
       wrappedPrompt = wrapPrompt(role, userPrompt, {
         worktreePath: wt.path,
         originPath: projectRoot,
       });
     } else if (role === 'consultant') {
+      // Run the consultant in a per-role session dir so a CLI that keys
+      // session state by cwd (claude, codex, …) treats it as a separate
+      // "project" from the boss — even when both roles use the same CLI.
+      runCwd = sessionDir(projectRoot, 'consultant');
       const recent = recentTranscriptText(projectRoot, RECENT_TRANSCRIPTS_FOR_CONSULTANT);
       wrappedPrompt = wrapPrompt(role, userPrompt, { recentTranscripts: recent });
     } else {
+      // boss: stay in the project root (cwd-keyed CLIs treat this as the
+      // primary session). Users can override per-role with `cwd:` in config.
+      runCwd = spec.cwd ?? projectRoot;
       wrappedPrompt = wrapPrompt(role, userPrompt, {});
     }
+
+    runSpec = {
+      ...spec,
+      cwd: runCwd,
+      env: {
+        ...(spec.env ?? {}),
+        ...baseEnv,
+        ...(worktreePath ? { WIB_WORKTREE: worktreePath } : {}),
+      },
+    };
 
     const result = await runAgent(runSpec, wrappedPrompt, { stream });
     if (!stream) process.stdout.write(result.stdout);

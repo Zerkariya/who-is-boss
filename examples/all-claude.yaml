@@ -1,0 +1,39 @@
+# Example: all four roles served by the same agent (Claude Code)
+#
+# This works because who-is-boss runs each role in a different cwd:
+#   - boss        ->  the project root
+#   - reviewer    ->  a fresh ephemeral git worktree (per call)
+#   - researcher  ->  a fresh ephemeral git worktree (per call)
+#   - consultant  ->  .wib/sessions/consultant/  (persistent, per role)
+#
+# Claude Code keys session state by working directory, so each role gets
+# its own conversation memory automatically — no manual --session-id needed.
+#
+# `claude --print` runs Claude Code one-shot (no interactive UI), so wib can
+# pipe the prompt in and capture stdout. Adjust to whatever your version's
+# non-interactive flag is.
+
+roles:
+  boss:
+    name: claude
+    command: claude
+    args: ["--print"]
+    promptMode: stdin
+
+  reviewer:
+    name: claude
+    command: claude
+    args: ["--print"]
+    promptMode: stdin
+
+  researcher:
+    name: claude
+    command: claude
+    args: ["--print"]
+    promptMode: stdin
+
+  consultant:
+    name: claude
+    command: claude
+    args: ["--print"]
+    promptMode: stdin

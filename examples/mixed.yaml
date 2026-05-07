@@ -1,0 +1,28 @@
+# Example: each role served by a different agent
+#
+# Pick whichever model you trust most for each job. Adjust the non-interactive
+# flag for each CLI as needed (claude --print, codex exec, gemini --prompt, …).
+
+roles:
+  boss:
+    name: claude
+    command: claude
+    args: ["--print"]
+    promptMode: stdin
+
+  reviewer:
+    name: codex
+    command: codex
+    args: ["exec"]
+    promptMode: stdin
+
+  researcher:
+    name: deepseek
+    command: deepseek
+    promptMode: stdin
+
+  consultant:
+    name: gemini
+    command: gemini
+    args: ["--prompt"]
+    promptMode: argv
