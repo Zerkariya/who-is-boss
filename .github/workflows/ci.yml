@@ -34,3 +34,11 @@ jobs:
         run: |
           node dist/cli.js --help
           node dist/cli.js roles
+
+      - name: Run tests
+        run: npm test
+        env:
+          GIT_AUTHOR_NAME: ci
+          GIT_AUTHOR_EMAIL: ci@example.com
+          GIT_COMMITTER_NAME: ci
+          GIT_COMMITTER_EMAIL: ci@example.com

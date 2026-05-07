@@ -12,7 +12,8 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsx src/cli.ts",
-    "test": "node --test --import tsx \"src/**/*.test.ts\"",
+    "test": "npm run build && node --import tsx --test test/unit/*.test.ts test/integration/*.test.ts",
+    "test:unit": "node --import tsx --test test/unit/*.test.ts",
     "lint": "tsc --noEmit",
     "prepublishOnly": "npm run build"
   },
