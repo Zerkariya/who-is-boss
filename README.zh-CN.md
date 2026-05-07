@@ -5,9 +5,13 @@
 
 [English](./README.md) · **简体中文**
 
-多 agent 命令行编排工具。**一个 agent 负责写代码。其他几个负责回答那些会打断写代码的问题。**
+Coding agent 不是全能助理。
 
-让一个 coding agent（Claude、Cursor 等）什么都干 —— 调研、code review、读别人的代码、回答"这个库还在维护吗" —— 它的 context window 会被一堆和当前要写的 diff 无关的杂事填满。`who-is-boss` 是一个很小的 CLI，给 boss 一条把非写代码的活外包出去的路，同时给**你**一条不打扰 boss 也能问问题的旁路。
+它是你雇来写代码的人。你不会让你的 senior 工程师在写函数中间去 Stack Overflow 翻三个小时调研某个库是否还在维护，也不会拉它去回答实习生的问题 —— 你会去拉别人。
+
+LLM 却被当成万能员工在用。后果是谁都看得到的：prompt 越塞越满，它越来越踩坑，你越来越怀疑是不是该重开一局。
+
+`who-is-boss` 给你补上那些本该存在的同事：**boss 写代码，reviewer 审方案，researcher 跨库调研，consultant 陪你闲聊**。每个人一份工作，互不打扰。
 
 ## 四个角色
 

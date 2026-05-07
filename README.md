@@ -5,9 +5,13 @@
 
 **English** · [简体中文](./README.zh-CN.md)
 
-Multi-agent CLI orchestration. **One agent writes code. The others answer the dumb questions.**
+A coding agent isn't a Swiss Army knife.
 
-When a single coding agent (Claude, Cursor, etc.) does everything — research, code review, reading other people's code, answering "is this lib still maintained?" — its context window fills up with junk that has nothing to do with the diff it's about to write. `who-is-boss` is a tiny CLI that gives the boss a way to delegate non-coding work, and gives **you** a separate channel to ask questions without interrupting the boss.
+It's the person you hired to write code. You wouldn't pull your senior engineer off a function to spend three hours on Stack Overflow checking whether some library is still maintained — and you wouldn't ask them to answer the intern's questions either. You'd pull someone else.
+
+But that's exactly how everyone uses LLMs. The result is the one you've already seen: the prompt keeps swelling, the agent starts tripping, and you start wondering if you should just reset the session.
+
+`who-is-boss` gives you the colleagues that should have been there: **boss writes code, reviewer audits plans, researcher digs through other repos, consultant chats with you on the side**. One job per person. No interruptions.
 
 ## The four roles
 
