@@ -1,5 +1,8 @@
 # who-is-boss
 
+[![CI](https://github.com/Zerkariya/who-is-boss/actions/workflows/ci.yml/badge.svg)](https://github.com/Zerkariya/who-is-boss/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](./LICENSE)
+
 Multi-agent CLI orchestration. **One agent writes code. The others answer the dumb questions.**
 
 When a single coding agent (Claude, Cursor, etc.) does everything — research, code review, reading other people's code, answering "is this lib still maintained?" — its context window fills up with junk that has nothing to do with the diff it's about to write. `who-is-boss` is a tiny CLI that gives the boss a way to delegate non-coding work, and gives **you** a separate channel to ask questions without interrupting the boss.
