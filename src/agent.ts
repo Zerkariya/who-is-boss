@@ -45,6 +45,17 @@ export async function runAgent(
       setTimeout(() => child.kill('SIGKILL'), 2000).unref();
     }, timeoutMs);
 
+    // The child may exit before we finish writing/closing stdin (e.g. it
+    // ignores stdin and runs to completion fast). On Linux that surfaces
+    // as EPIPE on the parent's stdin write side; swallow it — what matters
+    // is the child's exit code, captured below.
+    child.stdin.on('error', (err: NodeJS.ErrnoException) => {
+      if (err.code !== 'EPIPE') {
+        // Unexpected stdin error — surface via stderr so it shows up in logs.
+        stderr += `[runAgent] stdin error: ${err.message}\n`;
+      }
+    });
+
     child.stdout.on('data', (chunk: Buffer) => {
       const text = chunk.toString('utf8');
       stdout += text;
